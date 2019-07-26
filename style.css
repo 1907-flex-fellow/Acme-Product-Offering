@@ -1,0 +1,19 @@
+* {
+    box-sizing: border-box;
+  }
+
+#product-container{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#product-card{
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    justify-content: space-between;
+    width: calc(50% - 2rem);
+    background-color: orange;
+    margin: 1rem;
+    padding: 1rem;
+}

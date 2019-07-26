@@ -1,0 +1,106 @@
+<html>
+  <head>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+<style>
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: verdana;
+}
+
+h2 a{
+  color: white;
+  text-transform: uppercase;
+}
+
+#title {
+  margin-left: 1rem;
+}
+#products {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.product-card {
+  color: white;
+  width: calc(50% - 2rem);
+  margin: 1rem;
+  background-color: tomato;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 1rem;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+@media (max-width: 600px){
+  .product-card {
+    width: 100%;
+  }
+}
+</style>
+  </head>
+  <body>
+    <h1 id='title'>Acme Product Offerings</h1>
+    <div id='container'>
+      <div id='products'>
+      </div>
+    </div>
+  <script>
+    const API = 'http://localhost:3001/api';
+    let id = '';
+    let viewData;
+    window.addEventListener('hashchange', (ev)=> {
+      id = window.location.hash.slice(1);
+      render();
+
+    });
+
+    id = window.location.hash.slice(1);
+
+    const loadData = ()=> {
+      Promise.all([fetch(`${API}/companies`), fetch(`${API}/products`), fetch(`${API}/offerings`)])
+        .then(responses => Promise.all(responses.map( response => response.json()))) 
+        .then(([companies, products, offerings]) => {
+            viewData = products.map( product => {
+            const companyMap = companies.reduce((acc, company)=> {
+              acc[company.id] = company;
+              return acc;
+            }, {});
+            return {
+              product,
+              offerings: offerings.filter( offering => offering.productId === product.id)
+                .map( offering => {
+                  return {...offering, company: companies.find(company=> company.id === offering.companyId)}
+                })
+            };
+          });
+          render();
+        })
+    };
+    const render = ()=> {
+      const html = viewData.filter(data => !id || id === data.product.id ).map( data => `
+        <div class='product-card'>
+          <h2><a href='#${id ? '' : data.product.id}'>${ data.product.name }</a></h2>
+          <div>
+          ${ data.product.description }
+          </div>
+          <div>
+          $${ data.product.suggestedPrice.toFixed(2) }
+          </div>
+          <ul>
+            ${ data.offerings.map( offering => `
+              <li>Offered by: ${ offering.company.name } at $${ offering.price.toFixed(2) }</li>
+
+              `).join('') }
+          </ul>
+        </div>
+        `).join('');
+      document.querySelector('#products').innerHTML = html;
+    };
+    loadData();
+  </script>
+  </body>
+</html>
